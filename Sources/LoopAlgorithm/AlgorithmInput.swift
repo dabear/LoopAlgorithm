@@ -35,8 +35,10 @@ public protocol AlgorithmInput {
     var automaticBolusApplicationFactor: Double? { get } // Defaults to 0.4
     var gradualTransitionsThreshold: Double? { get }
     var emulation: AlgorithmEmulationOptions? { get } // Defaults to nil (no emulation)
+    var negativeInsulinDamper: Double? { get } // Optional negative-insulin-damper coefficient in [0,1]; nil = disabled
 }
 
 public extension AlgorithmInput {
     var emulation: AlgorithmEmulationOptions? { nil }
+    var negativeInsulinDamper: Double? { nil }
 }
