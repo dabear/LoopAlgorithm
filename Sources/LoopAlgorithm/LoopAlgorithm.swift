@@ -184,8 +184,7 @@ public struct LoopAlgorithm {
         carbAbsorptionModel: CarbAbsorptionComputable = PiecewiseLinearAbsorption(),
         gradualTransitionsThreshold: Double? = 40.0,
         momentumVelocityMaximum: LoopQuantity? = nil,
-        emulation: AlgorithmEmulationOptions = AlgorithmEmulationOptions(),
-        negativeInsulinDamper: Double? = nil
+        emulation: AlgorithmEmulationOptions = AlgorithmEmulationOptions()
     ) -> LoopPrediction<CarbType> where CarbType: CarbEntry, GlucoseType: GlucoseSampleValue, InsulinDoseType: InsulinDose {
 
         var prediction: [PredictedGlucoseValue] = []
@@ -346,26 +345,6 @@ public struct LoopAlgorithm {
                 momentum: useMomentum ? momentumEffects : [],
                 effects: effects
             )
-
-            // Negative Insulin Damper: multiply positive prediction deltas by (1 - damper),
-            // leaving negative deltas untouched. The coefficient is computed by the app
-            // (LoopDataManager) and is nil (no-op) unless the experiment is enabled.
-            if let damper = negativeInsulinDamper {
-                let alpha = 1 - damper
-                var dampedPrediction = [PredictedGlucoseValue]()
-                var value = 0.0
-                for (offset, element) in prediction.enumerated() {
-                    if offset == 0 {
-                        value = element.quantity.doubleValue(for: .milligramsPerDeciliter)
-                        dampedPrediction.append(element)
-                        continue
-                    }
-                    let delta = element.quantity.doubleValue(for: .milligramsPerDeciliter) - prediction[offset - 1].quantity.doubleValue(for: .milligramsPerDeciliter)
-                    value += delta > 0 ? alpha * delta : delta
-                    dampedPrediction.append(PredictedGlucoseValue(startDate: element.startDate, quantity: LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: value)))
-                }
-                prediction = dampedPrediction
-            }
 
             // Dosing requires prediction entries at least as long as the insulin model duration.
             // If our prediction is shorter than that, then extend it here.
@@ -808,8 +787,7 @@ public struct LoopAlgorithm {
                 useMidAbsorptionISF: input.useMidAbsorptionISF,
                 carbAbsorptionModel: input.carbAbsorptionModel.model,
                 gradualTransitionsThreshold: input.gradualTransitionsThreshold,
-                emulation: input.emulation ?? AlgorithmEmulationOptions(),
-                negativeInsulinDamper: input.negativeInsulinDamper
+                emulation: input.emulation ?? AlgorithmEmulationOptions()
             )
 
             let sensitivityForDosing: [AbsoluteScheduleValue<LoopQuantity>]
